@@ -1,3 +1,4 @@
+import requests
 from flask import Flask, render_template, request, send_file, redirect, url_for
 import feedparser
 import pandas as pd
@@ -7,6 +8,8 @@ from io import BytesIO
 import json
 import os
 from urllib.parse import urlparse
+NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID", "AhZRpvAwa4Hcm3fa38Id")
+NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET", "PsxFLPct3g")
 
 app = Flask(__name__)
 
@@ -113,6 +116,28 @@ def classify_title(title, keyword_groups):
                 matched_keywords.append(keyword)
     return sorted(set(matched_groups)), sorted(set(matched_keywords))
 
+def search_naver_news(query, display=10):
+    if not NAVER_CLIENT_ID or not NAVER_CLIENT_SECRET:
+        return []
+
+    url = "https://openapi.naver.com/v1/search/news.json"
+    headers = {
+        "X-Naver-Client-Id": NAVER_CLIENT_ID,
+        "X-Naver-Client-Secret": NAVER_CLIENT_SECRET,
+    }
+    params = {
+        "query": query,
+        "display": display,
+        "sort": "date",
+    }
+
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        response.raise_for_status()
+        return response.json().get("items", [])
+    except Exception as e:
+        print(f"네이버 뉴스 검색 오류: {query} - {e}")
+        return []
 
 def collect_news(days=1):
     keyword_groups = load_keywords()
@@ -156,6 +181,63 @@ def collect_news(days=1):
     articles.sort(key=lambda x: x["published_at"], reverse=True)
     return articles
 
+    # 네이버 뉴스 검색 API 수집
+    max_per_keyword = 10
+
+    all_keywords = [15]
+    for group, keywords in keyword_groups.items():
+        for keyword in keywords:
+            if keyword not in all_keywords:
+                all_keywords.append(keyword)
+
+    for keyword in all_keywords:
+        try:
+            naver_items = search_naver_news(keyword, display=max_per_keyword)
+
+            for item in naver_items:
+                title = clean_html(item.get("title", "")).strip()
+                link = item.get("originallink") or item.get("link", "")
+                description = clean_html(item.get("description", "")).strip()
+                published_at = parse_naver_date(item.get("pubDate", ""))
+
+                if not title or not link:
+                    continue
+
+                if published_at.date() < start_date or published_at.date() > today:
+                    continue
+
+                groups, matched_keywords = classify_title(title, keyword_groups)
+
+                if not groups:
+                    groups = []
+                    for group_name, group_keywords in keyword_groups.items():
+                        if keyword in group_keywords:
+                            groups.append(group_name)
+                            break
+
+                if not matched_keywords:
+                    matched_keywords = [keyword]
+
+                if link in seen_links or title in seen_titles:
+                    continue
+
+                seen_links.add(link)
+                seen_titles.add(title)
+
+                source = get_source_name({}, {}, link)
+
+                articles.append({
+                    "category": ", ".join(groups),
+                    "title": title,
+                    "source": source,
+                    "published_at": published_at.strftime("%Y-%m-%d %H:%M"),
+                    "matched_keywords": ", ".join(matched_keywords),
+                    "summary": description if description else f"{', '.join(groups)} 관련 기사입니다. 주요 키워드: {', '.join(matched_keywords)}",
+                    "link": link,
+                })
+
+        except Exception as e:
+            print(f"네이버 뉴스 처리 오류: {keyword} - {e}")
 
 def category_counts(articles, keyword_groups):
     counts = {key: 0 for key in keyword_groups.keys()}
