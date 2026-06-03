@@ -1,17 +1,22 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, redirect, url_for
 import feedparser
 import pandas as pd
 from datetime import datetime, timedelta
 from email.utils import parsedate_to_datetime
 from io import BytesIO
+import json
+import os
 
 app = Flask(__name__)
 
-KEYWORD_GROUPS = {
-    "AI": ["AI", "인공지능", "생성형 AI", "AX", "AI 에이전트", "LLM", "오픈AI", "OpenAI", "구글 AI", "마이크로소프트 AI", "AI 보안"],
-    "ERP": ["ERP", "전사적자원관리", "더존비즈온", "영림원", "영림원소프트랩", "SAP", "오라클 ERP", "이카운트", "아이퀘스트"],
-    "클라우드": ["클라우드", "SaaS", "AWS", "Azure", "애저", "구글 클라우드", "세일즈포스", "워크데이"],
-    "정책/세무": ["과학기술정보통신부", "디지털 전환", "연말정산", "법인세", "부가세", "전자세금계산서", "DX", "중소기업 디지털"]
+DATA_DIR = "/app/user_data"
+KEYWORDS_FILE = os.path.join(DATA_DIR, "keywords.json")
+
+DEFAULT_KEYWORD_GROUPS = {
+    "AI": ["AI", "인공지능", "생성형 AI", "AX", "AI 에이전트", "에이전틱 AI", "LLM", "sLLM", "RAG", "오픈AI", "OpenAI", "구글 AI", "마이크로소프트 AI", "AI 보안", "AI 거버넌스", "AI 기본법", "온디바이스 AI"],
+    "ERP": ["ERP", "전사적자원관리", "더존비즈온", "영림원", "영림원소프트랩", "K-System", "SystemEver", "시스템에버", "SAP", "오라클 ERP", "클라우드 ERP", "이카운트", "아이퀘스트"],
+    "클라우드": ["클라우드", "SaaS", "PaaS", "IaaS", "AWS", "Azure", "애저", "구글 클라우드", "네이버클라우드", "NHN클라우드", "세일즈포스", "워크데이"],
+    "정책/세무": ["과학기술정보통신부", "과기정통부", "중소벤처기업부", "디지털 전환", "DX", "개인정보보호위원회", "개인정보보호법", "연말정산", "법인세", "부가세", "전자세금계산서", "중소기업 디지털"]
 }
 
 RSS_FEEDS = [
@@ -24,6 +29,31 @@ RSS_FEEDS = [
 ]
 
 
+def ensure_data_dir():
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+
+def load_keywords():
+    ensure_data_dir()
+    if not os.path.exists(KEYWORDS_FILE):
+        save_keywords(DEFAULT_KEYWORD_GROUPS)
+        return DEFAULT_KEYWORD_GROUPS.copy()
+    try:
+        with open(KEYWORDS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            return DEFAULT_KEYWORD_GROUPS.copy()
+        return data
+    except Exception:
+        return DEFAULT_KEYWORD_GROUPS.copy()
+
+
+def save_keywords(keyword_groups):
+    ensure_data_dir()
+    with open(KEYWORDS_FILE, "w", encoding="utf-8") as f:
+        json.dump(keyword_groups, f, ensure_ascii=False, indent=2)
+
+
 def parse_date(entry):
     for key in ["published", "updated", "created"]:
         if key in entry:
@@ -34,11 +64,11 @@ def parse_date(entry):
     return datetime.now()
 
 
-def classify_title(title):
+def classify_title(title, keyword_groups):
     matched_groups = []
     matched_keywords = []
     lower_title = title.lower()
-    for group, keywords in KEYWORD_GROUPS.items():
+    for group, keywords in keyword_groups.items():
         for keyword in keywords:
             if keyword.lower() in lower_title:
                 matched_groups.append(group)
@@ -47,10 +77,12 @@ def classify_title(title):
 
 
 def collect_news(days=1):
+    keyword_groups = load_keywords()
     today = datetime.now().date()
     start_date = today - timedelta(days=max(days, 1) - 1)
     articles = []
-    seen = set()
+    seen_links = set()
+    seen_titles = set()
 
     for feed_url in RSS_FEEDS:
         try:
@@ -64,13 +96,13 @@ def collect_news(days=1):
                 published_at = parse_date(entry)
                 if published_at.date() < start_date or published_at.date() > today:
                     continue
-                groups, keywords = classify_title(title)
+                groups, keywords = classify_title(title, keyword_groups)
                 if not groups:
                     continue
-                key = (title, link)
-                if key in seen:
+                if link in seen_links or title in seen_titles:
                     continue
-                seen.add(key)
+                seen_links.add(link)
+                seen_titles.add(title)
                 articles.append({
                     "category": ", ".join(groups),
                     "title": title,
@@ -87,8 +119,8 @@ def collect_news(days=1):
     return articles
 
 
-def category_counts(articles):
-    counts = {key: 0 for key in KEYWORD_GROUPS.keys()}
+def category_counts(articles, keyword_groups):
+    counts = {key: 0 for key in keyword_groups.keys()}
     for article in articles:
         for category in article["category"].split(", "):
             if category in counts:
@@ -99,9 +131,53 @@ def category_counts(articles):
 @app.route("/")
 def index():
     days = int(request.args.get("days", 1))
+    keyword_groups = load_keywords()
     articles = collect_news(days=days)
-    counts = category_counts(articles)
-    return render_template("index.html", articles=articles, counts=counts, total=len(articles), days=days, keywords=KEYWORD_GROUPS)
+    counts = category_counts(articles, keyword_groups)
+    return render_template("index.html", articles=articles, counts=counts, total=len(articles), days=days, keywords=keyword_groups)
+
+
+@app.post("/keywords/add")
+def add_keyword():
+    group = request.form.get("group", "").strip()
+    keyword = request.form.get("keyword", "").strip()
+    days = request.form.get("days", 1)
+    keyword_groups = load_keywords()
+
+    if group and keyword:
+        if group not in keyword_groups:
+            keyword_groups[group] = []
+        if keyword not in keyword_groups[group]:
+            keyword_groups[group].append(keyword)
+            keyword_groups[group] = sorted(keyword_groups[group])
+            save_keywords(keyword_groups)
+
+    return redirect(url_for("index", days=days))
+
+
+@app.post("/keywords/delete")
+def delete_keyword():
+    group = request.form.get("group", "").strip()
+    keyword = request.form.get("keyword", "").strip()
+    days = request.form.get("days", 1)
+    keyword_groups = load_keywords()
+
+    if group in keyword_groups and keyword in keyword_groups[group]:
+        keyword_groups[group].remove(keyword)
+        save_keywords(keyword_groups)
+
+    return redirect(url_for("index", days=days))
+
+
+@app.post("/categories/add")
+def add_category():
+    group = request.form.get("group", "").strip()
+    days = request.form.get("days", 1)
+    keyword_groups = load_keywords()
+    if group and group not in keyword_groups:
+        keyword_groups[group] = []
+        save_keywords(keyword_groups)
+    return redirect(url_for("index", days=days))
 
 
 @app.route("/download")
