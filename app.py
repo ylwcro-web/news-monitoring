@@ -74,26 +74,32 @@ def parse_date(entry):
 
 
 def get_source_name(entry, feed, link):
-    try:
-        source = entry.get("source")
-        if isinstance(source, dict) and source.get("title"):
-            return source.get("title")
-    except Exception:
-        pass
-
-    author = entry.get("author", "")
-    if author:
-        return author
 
     try:
         domain = urlparse(link).netloc.lower().replace("www.", "")
+
         for key, name in DOMAIN_SOURCE_MAP.items():
             if key in domain:
                 return name
-    except Exception:
-        pass
 
-    return feed.feed.get("title", "Unknown")
+        return domain
+
+    except Exception:
+        return "Unknown"
+        DOMAIN_SOURCE_MAP = {
+    "yna.co.kr": "연합뉴스",
+    "etnews.com": "전자신문",
+    "zdnet.co.kr": "ZDNet Korea",
+    "itworld.co.kr": "ITWorld Korea",
+    "ciokorea.com": "CIO Korea",
+
+    "mk.co.kr": "매일경제",
+    "hankyung.com": "한국경제",
+    "fnnews.com": "파이낸셜뉴스",
+    "dt.co.kr": "디지털타임스",
+    "edaily.co.kr": "이데일리",
+    "bloter.net": "블로터",
+}
 
 
 def classify_title(title, keyword_groups):
