@@ -3,109 +3,95 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI·ERP·클라우드 뉴스 모니터링</title>
+  <title>통합 업무 관리 시스템</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body{margin:0;font-family:Arial,'Noto Sans KR',sans-serif;background:#f5f7fb;color:#1f2937}
-    .wrap{max-width:1180px;margin:0 auto;padding:32px 20px}
-    .hero{background:linear-gradient(135deg,#111827,#374151);color:white;border-radius:20px;padding:30px;margin-bottom:22px;box-shadow:0 10px 30px rgba(0,0,0,.12)}
-    h1{margin:0 0 8px;font-size:30px} h2{margin:0 0 14px}.sub{opacity:.86;line-height:1.6}.toolbar,.formrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
-    select,input,button,.btn{border:0;border-radius:12px;padding:12px 15px;font-weight:700;text-decoration:none}button,.btn{cursor:pointer}.btn{background:#2563eb;color:white;display:inline-block}button{background:#10b981;color:white}.danger{background:#ef4444;color:white;padding:7px 10px;border-radius:9px;font-size:12px}select,input{background:white;color:#111827;border:1px solid #e5e7eb}.hero select{border:0}
-    .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin:18px 0}.card{background:white;border-radius:16px;padding:18px;box-shadow:0 4px 18px rgba(15,23,42,.07)}
-    .card .label{font-size:13px;color:#6b7280}.card .num{font-size:28px;font-weight:800;margin-top:6px}
-    .panel{background:white;border-radius:18px;padding:18px;box-shadow:0 4px 18px rgba(15,23,42,.07);margin-top:18px;overflow:auto}
-    table{width:100%;border-collapse:collapse;min-width:980px}th,td{border-bottom:1px solid #e5e7eb;padding:12px;text-align:left;vertical-align:top;font-size:14px}th{background:#f9fafb;color:#374151;position:sticky;top:0}.tag{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700}.summary{color:#4b5563;line-height:1.5}a{color:#2563eb}.empty{text-align:center;padding:42px;color:#6b7280}.keywords{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.kwbox{background:#f9fafb;border-radius:14px;padding:14px}.kwbox h3{margin:0 0 8px;font-size:15px}.kw{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:5px 6px 5px 9px;margin:3px;font-size:12px}.kw form{display:inline}.kw button{padding:3px 7px;border-radius:999px;background:#fee2e2;color:#991b1b;font-size:11px}.notice{font-size:13px;color:#6b7280;line-height:1.5;margin-top:8px}
-    @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.keywords{grid-template-columns:1fr}.hero{padding:22px}h1{font-size:24px}}
+    :root{--bg:#f4f7fb;--panel:#fff;--text:#152033;--muted:#64748b;--line:#e2e8f0;--blue:#2563eb;--green:#10b981;--red:#ef4444;--amber:#f59e0b;--nav:#0f172a}
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text)}a{color:inherit;text-decoration:none}.layout{display:flex;min-height:100vh}.sidebar{width:250px;background:var(--nav);color:white;padding:22px 16px;position:fixed;left:0;top:0;bottom:0;overflow:auto}.brand{font-weight:900;font-size:20px;line-height:1.35;margin-bottom:8px}.brand small{display:block;color:#94a3b8;font-size:12px;margin-top:6px}.nav{margin-top:24px;display:grid;gap:8px}.nav a{padding:12px 14px;border-radius:12px;color:#cbd5e1;font-weight:800}.nav a:hover,.nav a.active{background:#1d4ed8;color:#fff}.userbox{margin-top:24px;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;color:#cbd5e1;font-size:13px}.main{margin-left:250px;width:calc(100% - 250px);padding:28px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}.top h1{margin:0;font-size:28px}.sub{color:var(--muted);margin-top:6px}.grid{display:grid;gap:16px}.cards{grid-template-columns:repeat(5,1fr)}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 24px rgba(15,23,42,.05)}.card{padding:20px}.label{font-size:13px;color:var(--muted);font-weight:800}.num{font-size:30px;font-weight:900;margin-top:8px}.panel{padding:20px;margin-top:16px;overflow:auto}.panel h2{margin:0 0 14px;font-size:20px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.formgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.formgrid.two{grid-template-columns:repeat(2,1fr)}input,select,textarea,button,.btn{border-radius:12px;border:1px solid var(--line);padding:11px 12px;font-size:14px}input,select,textarea{background:#fff;color:var(--text);width:100%}textarea{min-height:88px;resize:vertical}button,.btn{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:900;cursor:pointer;display:inline-block}.btn.gray{background:#475569;border-color:#475569}.btn.green,button.green{background:var(--green);border-color:var(--green)}.btn.red,button.red{background:var(--red);border-color:var(--red)}table{width:100%;border-collapse:collapse;min-width:920px}th,td{border-bottom:1px solid var(--line);padding:12px;text-align:left;vertical-align:top;font-size:14px}th{background:#f8fafc;color:#475569;font-weight:900}.tag{display:inline-block;border-radius:999px;padding:5px 9px;background:#eef2ff;color:#3730a3;font-size:12px;font-weight:900}.status{display:inline-block;border-radius:999px;padding:5px 9px;background:#ecfdf5;color:#047857;font-size:12px;font-weight:900}.danger{background:#fef2f2;color:#b91c1c}.warn{background:#fffbeb;color:#b45309}.muted{color:var(--muted)}.flash{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:14px;padding:12px 14px;margin:10px 0}.login{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#0f172a,#1d4ed8)}.loginbox{width:100%;max-width:420px;background:#fff;border-radius:22px;padding:28px;box-shadow:0 30px 80px rgba(0,0,0,.22)}.loginbox h1{margin:0 0 8px}.kpis{grid-template-columns:repeat(4,1fr)}.keywords{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.kwbox{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:14px}.kw{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 6px 5px 9px;margin:3px;font-size:12px}.kw button{padding:3px 7px;border-radius:999px;background:#fee2e2;color:#991b1b;border:0;font-size:11px}.chartbox{max-width:760px}.empty{text-align:center;color:var(--muted);padding:32px}.split{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}@media(max-width:1100px){.cards,.kpis{grid-template-columns:repeat(2,1fr)}.formgrid,.formgrid.two,.split{grid-template-columns:1fr}.keywords{grid-template-columns:1fr}.sidebar{position:static;width:100%;height:auto}.layout{display:block}.main{margin-left:0;width:100%;padding:18px}.nav{grid-template-columns:repeat(2,1fr)}}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <section class="hero">
-      <h1>AI·ERP·클라우드 뉴스 모니터링</h1>
-      <div class="sub">RSS 기반으로 주요 IT·비즈니스 뉴스를 수집하고, 업무 키워드 기준으로 자동 분류합니다.</div>
-      <form class="toolbar" method="get" action="/">
-        <select name="days">
-          <option value="1" {% if days == 1 %}selected{% endif %}>오늘</option>
-          <option value="3" {% if days == 3 %}selected{% endif %}>최근 3일</option>
-          <option value="7" {% if days == 7 %}selected{% endif %}>최근 7일</option>
-        </select>
-        <button type="submit">뉴스 새로고침</button>
-        <a class="btn" href="/download?days={{ days }}">엑셀 다운로드</a>
-      </form>
-    </section>
-
-    <section class="cards">
-      <div class="card"><div class="label">전체 기사</div><div class="num">{{ total }}</div></div>
-      {% for name, count in counts.items() %}
-      <div class="card"><div class="label">{{ name }}</div><div class="num">{{ count }}</div></div>
-      {% endfor %}
-    </section>
-
-    <section class="panel">
-      <h2>키워드 관리</h2>
-      <form class="formrow" method="post" action="/keywords/add">
-        <input type="hidden" name="days" value="{{ days }}">
-        <select name="group" required>
-          {% for group in keywords.keys() %}<option value="{{ group }}">{{ group }}</option>{% endfor %}
-        </select>
-        <input name="keyword" placeholder="추가할 키워드 입력" required>
-        <button type="submit">키워드 추가</button>
-      </form>
-      <form class="formrow" method="post" action="/categories/add">
-        <input type="hidden" name="days" value="{{ days }}">
-        <input name="group" placeholder="새 카테고리명 입력">
-        <button type="submit">카테고리 추가</button>
-      </form>
-      <div class="notice">추가·삭제한 키워드는 서버의 영구 저장 영역에 보관되어 재배포 후에도 유지됩니다.</div>
-    </section>
-
-    <section class="panel">
-      <h2>현재 모니터링 키워드</h2>
-      <div class="keywords">
-        {% for group, items in keywords.items() %}
-        <div class="kwbox">
-          <h3>{{ group }}</h3>
-          {% if items %}
-            {% for item in items %}
-            <span class="kw">{{ item }}
-              <form method="post" action="/keywords/delete" onsubmit="return confirm('키워드를 삭제할까요?');">
-                <input type="hidden" name="days" value="{{ days }}">
-                <input type="hidden" name="group" value="{{ group }}">
-                <input type="hidden" name="keyword" value="{{ item }}">
-                <button type="submit">삭제</button>
-              </form>
-            </span>
-            {% endfor %}
-          {% else %}
-            <div class="notice">등록된 키워드가 없습니다.</div>
-          {% endif %}
-        </div>
-        {% endfor %}
+{% if page == 'login' %}
+  <div class="login">
+    <form class="loginbox" method="post" action="/login">
+      <h1>통합 업무 관리 시스템</h1>
+      <p class="muted">관리자 계정으로 로그인하세요.</p>
+      {% with messages = get_flashed_messages() %}{% if messages %}{% for message in messages %}<div class="flash">{{ message }}</div>{% endfor %}{% endif %}{% endwith %}
+      <div class="grid">
+        <input name="username" placeholder="아이디" required autofocus>
+        <input name="password" type="password" placeholder="비밀번호" required>
+        <button type="submit">로그인</button>
       </div>
-    </section>
-
-    <section class="panel">
-      <h2>수집 결과</h2>
-      {% if articles %}
-      <table>
-        <thead><tr><th>카테고리</th><th>기사 제목</th><th>언론사</th><th>날짜</th><th>키워드</th><th>실무용 요약</th><th>링크</th></tr></thead>
-        <tbody>
-        {% for article in articles %}
-          <tr>
-            <td><span class="tag">{{ article.category }}</span></td>
-            <td>{{ article.title }}</td>
-            <td>{{ article.source }}</td>
-            <td>{{ article.published_at }}</td>
-            <td>{{ article.matched_keywords }}</td>
-            <td class="summary">{{ article.summary }}</td>
-            <td><a href="{{ article.link }}" target="_blank" rel="noopener">원문 보기</a></td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-        <div class="empty">선택한 기간에 매칭된 뉴스가 없습니다. 기간을 늘리거나 키워드를 추가해 주세요.</div>
-      {% endif %}
-    </section>
+      <p class="muted" style="font-size:12px">초기값: admin / admin1234. 운영 전 환경변수 ADMIN_USERNAME, ADMIN_PASSWORD를 변경하세요.</p>
+    </form>
   </div>
+{% else %}
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">통합 업무 관리 시스템<small>News · Exam · Privacy · School · Support</small></div>
+    <nav class="nav">
+      <a class="{% if page=='dashboard' %}active{% endif %}" href="/">대시보드</a>
+      <a class="{% if page=='news' %}active{% endif %}" href="/news">뉴스 모니터링</a>
+      <a class="{% if page=='exams' %}active{% endif %}" href="/exams">자격시험 분석</a>
+      <a class="{% if page=='privacy' %}active{% endif %}" href="/privacy">개인정보보호</a>
+      <a class="{% if page=='consultations' %}active{% endif %}" href="/consultations">학교 상담</a>
+      <a class="{% if page=='support' %}active{% endif %}" href="/support">정부지원사업</a>
+    </nav>
+    <div class="userbox">접속 계정: <b>{{ active_user }}</b><br><a href="/logout" style="color:#93c5fd">로그아웃</a></div>
+  </aside>
+  <main class="main">
+    {% with messages = get_flashed_messages() %}{% if messages %}{% for message in messages %}<div class="flash">{{ message }}</div>{% endfor %}{% endif %}{% endwith %}
+
+    {% if page == 'dashboard' %}
+      <div class="top"><div><h1>대시보드</h1><div class="sub">오늘 기준 업무 현황을 한 번에 확인합니다.</div></div><a class="btn" href="/news">뉴스 새로고침</a></div>
+      <section class="grid cards">
+        <div class="card"><div class="label">수집 뉴스</div><div class="num">{{ metrics.news }}</div></div>
+        <div class="card"><div class="label">시험 데이터</div><div class="num">{{ metrics.exams }}</div></div>
+        <div class="card"><div class="label">개인정보 자료</div><div class="num">{{ metrics.privacy }}</div></div>
+        <div class="card"><div class="label">진행 상담</div><div class="num">{{ metrics.consulting }}</div></div>
+        <div class="card"><div class="label">지원사업</div><div class="num">{{ metrics.support }}</div></div>
+      </section>
+      <section class="split">
+        <div class="panel"><h2>최근 뉴스</h2>{% if articles %}<table><thead><tr><th>구분</th><th>제목</th><th>언론사</th></tr></thead><tbody>{% for a in articles %}<tr><td><span class="tag">{{ a.category }}</span></td><td><a href="{{ a.link }}" target="_blank">{{ a.title }}</a><div class="muted">{{ a.published_at }}</div></td><td>{{ a.source }}</td></tr>{% endfor %}</tbody></table>{% else %}<div class="empty">최근 매칭 뉴스가 없습니다.</div>{% endif %}</div>
+        <div class="panel"><h2>마감 임박 지원사업</h2>{% if upcoming %}<table><thead><tr><th>사업명</th><th>마감</th><th>담당</th></tr></thead><tbody>{% for r in upcoming %}<tr><td>{{ r.title }}<div class="muted">{{ r.agency }}</div></td><td><span class="status warn">{{ r.deadline }}</span></td><td>{{ r.owner }}</td></tr>{% endfor %}</tbody></table>{% else %}<div class="empty">등록된 지원사업이 없습니다.</div>{% endif %}</div>
+      </section>
+      <section class="panel"><h2>최근 학교 상담</h2>{% if consultations %}<table><thead><tr><th>학교</th><th>상담 주제</th><th>후속조치</th><th>상태</th></tr></thead><tbody>{% for r in consultations %}<tr><td>{{ r.school }}</td><td>{{ r.topic }}</td><td>{{ r.next_action }}<div class="muted">{{ r.due_date }}</div></td><td><span class="status">{{ r.status }}</span></td></tr>{% endfor %}</tbody></table>{% else %}<div class="empty">상담 이력이 없습니다.</div>{% endif %}</section>
+
+    {% elif page == 'news' %}
+      <div class="top"><div><h1>뉴스 모니터링</h1><div class="sub">AI·ERP·클라우드·정책 키워드 기반으로 업무 관련 뉴스를 수집합니다.</div></div><a class="btn green" href="/download/news?days={{ days }}">엑셀 다운로드</a></div>
+      <section class="panel">
+        <form class="row" method="get" action="/news"><select name="days" style="max-width:180px"><option value="1" {% if days==1 %}selected{% endif %}>오늘</option><option value="3" {% if days==3 %}selected{% endif %}>최근 3일</option><option value="7" {% if days==7 %}selected{% endif %}>최근 7일</option></select><button type="submit">뉴스 새로고침</button></form>
+      </section>
+      <section class="grid kpis">{% for name,count in counts.items() %}<div class="card"><div class="label">{{ name }}</div><div class="num">{{ count }}</div></div>{% endfor %}</section>
+      <section class="panel"><h2>키워드 관리</h2><form class="row" method="post" action="/keywords/add"><input type="hidden" name="days" value="{{ days }}"><select name="group" style="max-width:180px">{% for group in keywords.keys() %}<option value="{{ group }}">{{ group }}</option>{% endfor %}</select><input name="keyword" placeholder="추가할 키워드" style="max-width:300px" required><button type="submit">추가</button></form><form class="row" method="post" action="/categories/add" style="margin-top:10px"><input type="hidden" name="days" value="{{ days }}"><input name="group" placeholder="새 카테고리명" style="max-width:300px"><button class="gray" type="submit">카테고리 추가</button></form><div class="keywords" style="margin-top:14px">{% for group,items in keywords.items() %}<div class="kwbox"><b>{{ group }}</b><br>{% for item in items %}<span class="kw">{{ item }}<form method="post" action="/keywords/delete"><input type="hidden" name="days" value="{{ days }}"><input type="hidden" name="group" value="{{ group }}"><input type="hidden" name="keyword" value="{{ item }}"><button type="submit">삭제</button></form></span>{% endfor %}</div>{% endfor %}</div></section>
+      <section class="panel"><h2>수집 결과</h2>{% if articles %}<table><thead><tr><th>카테고리</th><th>기사 제목</th><th>언론사</th><th>날짜</th><th>키워드</th><th>실무 메모</th></tr></thead><tbody>{% for a in articles %}<tr><td><span class="tag">{{ a.category }}</span></td><td><a href="{{ a.link }}" target="_blank">{{ a.title }}</a><div class="muted">{{ a.summary }}</div></td><td>{{ a.source }}</td><td>{{ a.published_at }}</td><td>{{ a.matched_keywords }}</td><td><form method="post" action="/news/save" class="grid"><input type="hidden" name="days" value="{{ days }}"><input type="hidden" name="title" value="{{ a.title }}"><input type="hidden" name="source" value="{{ a.source }}"><input type="hidden" name="url" value="{{ a.link }}"><input type="hidden" name="category" value="{{ a.category }}"><select name="importance"><option>높음</option><option selected>보통</option><option>낮음</option></select><input name="business_summary" placeholder="업무 요약"><input name="impact_note" placeholder="영향/후속조치"><button type="submit">저장</button></form></td></tr>{% endfor %}</tbody></table>{% else %}<div class="empty">선택 기간에 매칭된 뉴스가 없습니다.</div>{% endif %}</section>
+      <section class="panel"><h2>저장한 뉴스 메모</h2><a class="btn gray" href="/export/news_notes">CSV 다운로드</a>{% if notes %}<table><thead><tr><th>중요도</th><th>제목</th><th>요약</th><th>영향</th></tr></thead><tbody>{% for r in notes %}<tr><td><span class="status {% if r.importance=='높음' %}danger{% endif %}">{{ r.importance }}</span></td><td><a href="{{ r.url }}" target="_blank">{{ r.title }}</a></td><td>{{ r.business_summary }}</td><td>{{ r.impact_note }}</td></tr>{% endfor %}</tbody></table>{% endif %}</section>
+
+    {% elif page == 'exams' %}
+      <div class="top"><div><h1>자격시험 데이터 분석</h1><div class="sub">학교별·모듈별 응시자와 합격률을 관리합니다.</div></div><a class="btn gray" href="/export/exams">CSV 다운로드</a></div>
+      <section class="panel"><h2>시험 데이터 등록</h2><form method="post" action="/exams" class="formgrid"><input name="school" placeholder="학교명" required><input name="exam_name" placeholder="시험명" required><input name="module" placeholder="모듈명" required><input type="date" name="exam_date"><input type="number" name="total" placeholder="응시자" min="0"><input type="number" name="passed" placeholder="합격자" min="0"><input name="memo" placeholder="메모"><button type="submit">등록</button></form></section>
+      <section class="panel"><h2>엑셀 업로드</h2><form class="row" method="post" action="/exams/upload" enctype="multipart/form-data"><input type="file" name="file" accept=".xlsx,.xls" required><button class="green" type="submit">업로드</button></form><p class="muted">필수 컬럼: 학교, 시험명, 모듈, 응시자, 합격자 / 선택 컬럼: 시험일, 메모</p></section>
+      <section class="panel chartbox"><h2>합격률 차트</h2><canvas id="examChart"></canvas></section>
+      <section class="panel"><h2>등록 데이터</h2>{% if rows %}<table><thead><tr><th>학교</th><th>시험명</th><th>모듈</th><th>응시</th><th>합격</th><th>시험일</th><th>메모</th></tr></thead><tbody>{% for r in rows %}<tr><td>{{ r.school }}</td><td>{{ r.exam_name }}</td><td>{{ r.module }}</td><td>{{ r.total }}</td><td>{{ r.passed }}</td><td>{{ r.exam_date }}</td><td>{{ r.memo }}</td></tr>{% endfor %}</tbody></table>{% else %}<div class="empty">등록된 시험 데이터가 없습니다.</div>{% endif %}</section>
+      <script>const examData={{ chart|safe }};if(document.getElementById('examChart')){new Chart(document.getElementById('examChart'),{type:'bar',data:{labels:examData.map(x=>x.school+' / '+x.module),datasets:[{label:'합격률(%)',data:examData.map(x=>x.rate)}]},options:{responsive:true,scales:{y:{beginAtZero:true,max:100}}}});}</script>
+
+    {% elif page == 'privacy' %}
+      <div class="top"><div><h1>개인정보보호 자료실</h1><div class="sub">법령, 가이드, 점검자료와 업무 적용 메모를 관리합니다.</div></div><a class="btn gray" href="/export/privacy">CSV 다운로드</a></div>
+      <section class="panel"><h2>자료 등록</h2><form method="post" action="/privacy" class="formgrid two"><input name="title" placeholder="자료명" required><input name="source" placeholder="출처"><input type="date" name="doc_date"><input name="url" placeholder="URL"><textarea name="summary" placeholder="주요 내용"></textarea><textarea name="action_note" placeholder="업무 적용 메모"></textarea><button type="submit">등록</button></form></section>
+      <section class="panel"><h2>자료 목록</h2>{% if rows %}<table><thead><tr><th>자료명</th><th>출처/일자</th><th>주요 내용</th><th>업무 적용</th></tr></thead><tbody>{% for r in rows %}<tr><td>{% if r.url %}<a href="{{ r.url }}" target="_blank">{{ r.title }}</a>{% else %}{{ r.title }}{% endif %}</td><td>{{ r.source }}<div class="muted">{{ r.doc_date }}</div></td><td>{{ r.summary }}</td><td>{{ r.action_note }}</td></tr>{% endfor %}</tbody></table>{% else %}<div class="empty">등록된 자료가 없습니다.</div>{% endif %}</section>
+
+    {% elif page == 'consultations' %}
+      <div class="top"><div><h1>학교 상담 이력</h1><div class="sub">학교별 상담, 후속조치, 마감일과 진행 상태를 관리합니다.</div></div><a class="btn gray" href="/export/consultations">CSV 다운로드</a></div>
+      <section class="panel"><h2>상담 등록</h2><form method="post" action="/consultations" class="formgrid"><input name="school" placeholder="학교명" required><input name="contact_name" placeholder="담당자"><input name="contact_phone" placeholder="연락처"><input name="topic" placeholder="상담 주제" required><input type="date" name="consult_date"><input name="next_action" placeholder="후속조치"><input type="date" name="due_date"><select name="status"><option>진행중</option><option>대기</option><option>완료</option></select><textarea name="memo" placeholder="상담 메모"></textarea><button type="submit">등록</button></form></section>
+      <section class="panel"><h2>상담 목록</h2>{% if rows %}<table><thead><tr><th>학교</th><th>담당자</th><th>주제</th><th>상담일</th><th>후속조치</th><th>마감</th><th>상태</th></tr></thead><tbody>{% for r in rows %}<tr><td>{{ r.school }}</td><td>{{ r.contact_name }}<div class="muted">{{ r.contact_phone }}</div></td><td>{{ r.topic }}<div class="muted">{{ r.memo }}</div></td><td>{{ r.consult_date }}</td><td>{{ r.next_action }}</td><td>{{ r.due_date }}</td><td><span class="status {% if r.status=='완료' %}{% else %}warn{% endif %}">{{ r.status }}</span></td></tr>{% endfor %}</tbody></table>{% else %}<div class="empty">상담 이력이 없습니다.</div>{% endif %}</section>
+
+    {% elif page == 'support' %}
+      <div class="top"><div><h1>정부지원사업 관리</h1><div class="sub">사업 공고, 마감일, 담당자, 진행 상태를 관리합니다.</div></div><a class="btn gray" href="/export/support">CSV 다운로드</a></div>
+      <section class="panel"><h2>지원사업 등록</h2><form method="post" action="/support" class="formgrid"><input name="title" placeholder="사업명" required><input name="agency" placeholder="기관"><input type="date" name="deadline"><input name="owner" placeholder="담당자"><select name="status"><option>검토중</option><option>신청예정</option><option>신청완료</option><option>완료</option></select><input name="url" placeholder="공고 URL"><input name="memo" placeholder="메모"><button type="submit">등록</button></form></section>
+      <section class="panel"><h2>사업 목록</h2>{% if rows %}<table><thead><tr><th>사업명</th><th>기관</th><th>마감일</th><th>담당자</th><th>상태</th><th>메모</th></tr></thead><tbody>{% for r in rows %}<tr><td>{% if r.url %}<a href="{{ r.url }}" target="_blank">{{ r.title }}</a>{% else %}{{ r.title }}{% endif %}</td><td>{{ r.agency }}</td><td><span class="status warn">{{ r.deadline }}</span></td><td>{{ r.owner }}</td><td><span class="status">{{ r.status }}</span></td><td>{{ r.memo }}</td></tr>{% endfor %}</tbody></table>{% else %}<div class="empty">등록된 지원사업이 없습니다.</div>{% endif %}</section>
+    {% endif %}
+  </main>
+</div>
+{% endif %}
 </body>
 </html>
